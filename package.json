@@ -1,0 +1,46 @@
+{
+  "name": "lumen",
+  "version": "0.1.0",
+  "description": "A minimal TypeScript + Ink coding agent CLI.",
+  "type": "module",
+  "bin": {
+    "lumen": "./dist/main.js"
+  },
+  "scripts": {
+    "dev": "tsx src/main.tsx",
+    "build": "tsc -p tsconfig.build.json && node scripts/prepare-bin.mjs",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "dotenv": "^17.4.2",
+    "glob": "^11.0.3",
+    "ink": "^6.4.0",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^6.0.0",
+    "js-tiktoken": "^1.0.20",
+    "nanoid": "^5.1.6",
+    "openai": "^6.2.0",
+    "react": "^19.1.1",
+    "yargs": "^18.0.0",
+    "zod": "^3.24.2",
+    "zustand": "^5.0.9"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.4",
+    "@types/node": "^22.15.24",
+    "@types/react": "^19.1.12",
+    "@types/yargs": "^17.0.35",
+    "@vitest/coverage-v8": "^3.0.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
