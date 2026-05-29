@@ -1,6 +1,6 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { readFileTool } from '../../src/tools/builtin/file/index.js';
 
@@ -58,6 +58,6 @@ describe('readFileTool', () => {
 
     const result = JSON.parse(await readFileTool.execute({ path: outsideFile }));
 
-    expect(result.error).toContain('Refusing to read outside workspace');
+    expect(result.error).toContain('outside workspace');
   });
 });

@@ -35,7 +35,7 @@ export class SimpleAgent {
       {
         role: 'system',
         content:
-          'You are a helpful coding assistant. Use tools when you need to inspect local workspace files before answering.',
+          'You are a helpful coding assistant. Use tools when you need to inspect or update local workspace files before answering.',
       },
       {
         role: 'user',

@@ -1,8 +1,9 @@
 import { constants } from 'node:fs';
-import { access, open, realpath, stat } from 'node:fs/promises';
+import { access, open, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 import type { AgentTool } from '../../types/index.js';
+import { resolveExistingWorkspacePath } from './workspacePath.js';
 
 const DEFAULT_MAX_BYTES = 200_000;
 const HARD_MAX_BYTES = 1_000_000;
@@ -11,22 +12,6 @@ const ReadFileInputSchema = z.object({
   path: z.string().min(1, 'path is required.'),
   max_bytes: z.number().int().positive().max(HARD_MAX_BYTES).optional(),
 });
-
-function isPathInside(parent: string, child: string): boolean {
-  const relativePath = path.relative(parent, child);
-  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
-}
-
-async function resolveWorkspacePath(inputPath: string): Promise<string> {
-  const workspaceRoot = await realpath(process.cwd());
-  const resolvedPath = path.resolve(workspaceRoot, inputPath);
-
-  if (!isPathInside(workspaceRoot, resolvedPath)) {
-    throw new Error(`Refusing to read outside workspace: ${inputPath}`);
-  }
-
-  return realpath(resolvedPath);
-}
 
 async function readFileContent(filePath: string, maxBytes: number): Promise<Buffer> {
   const fileHandle = await open(filePath, 'r');
@@ -66,11 +51,7 @@ export const readFileTool: AgentTool = {
     try {
       const input = ReadFileInputSchema.parse(args);
       const maxBytes = input.max_bytes ?? DEFAULT_MAX_BYTES;
-      const filePath = await resolveWorkspacePath(input.path);
-
-      if (!isPathInside(await realpath(process.cwd()), filePath)) {
-        throw new Error(`Refusing to read outside workspace: ${input.path}`);
-      }
+      const { workspaceRoot, filePath } = await resolveExistingWorkspacePath(input.path);
 
       await access(filePath, constants.R_OK);
 
@@ -82,7 +63,7 @@ export const readFileTool: AgentTool = {
       const content = await readFileContent(filePath, maxBytes);
 
       return JSON.stringify({
-        path: path.relative(process.cwd(), filePath),
+        path: path.relative(workspaceRoot, filePath),
         bytes_read: content.length,
         truncated: fileStat.size > content.length,
         content: content.toString('utf8'),
