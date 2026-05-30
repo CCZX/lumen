@@ -3,12 +3,12 @@ import Spinner from 'ink-spinner';
 import TextInput from 'ink-text-input';
 import type { ReactElement } from 'react';
 import { useMemo, useState } from 'react';
-import { SimpleAgent } from '../agent/SimpleAgent.js';
+import { Agent } from '../agent/Agent.js';
 import { useConfigStore } from '../store/configStore.js';
 
 export function App(): ReactElement {
   const config = useConfigStore((state) => state.config);
-  const agent = useMemo(() => new SimpleAgent(config), [config]);
+  const agent = useMemo(() => new Agent(config), [config]);
   const [input, setInput] = useState('');
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);

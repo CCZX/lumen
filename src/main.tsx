@@ -5,7 +5,6 @@ dotenv.config();
 import { render } from 'ink';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { SimpleAgent } from './agent/SimpleAgent.js';
 import { ConfigManager } from './config/ConfigManager.js';
 import { configStore } from './store/configStore.js';
 import { App } from './ui/App.js';
@@ -48,13 +47,6 @@ async function main(): Promise<void> {
   });
 
   configStore.getState().setConfig(config);
-
-  if (args.print) {
-    const agent = new SimpleAgent();
-    const response = await agent.chat(args.print);
-    process.stdout.write(`${response}\n`);
-    return;
-  }
 
   render(<App />);
 }

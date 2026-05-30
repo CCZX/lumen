@@ -14,7 +14,7 @@ type MessageWithReasoningContent = ChatCompletionMessage & {
   reasoning_content?: string | null;
 };
 
-export class SimpleAgent {
+export class Agent {
   private readonly client: OpenAI;
   private readonly model: string;
 
