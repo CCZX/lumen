@@ -1,6 +1,6 @@
 {
   "name": "lumen",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "A minimal TypeScript + Ink coding agent CLI.",
   "type": "module",
   "bin": {
