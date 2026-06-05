@@ -1,8 +1,9 @@
 import type { ChatCompletionTool } from 'openai/resources/chat/completions';
-import { readFileTool, writeFileTool } from '../builtin/file/index.js';
+import { globTool, readFileTool, writeFileTool } from '../builtin/file/index.js';
+import { shellTool } from '../builtin/shell/index.js';
 import type { AgentTool } from '../types/index.js';
 
-const tools: AgentTool[] = [readFileTool, writeFileTool];
+const tools: AgentTool[] = [globTool, readFileTool, shellTool, writeFileTool];
 
 export function getTools(): AgentTool[] {
   return tools;

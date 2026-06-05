@@ -53,7 +53,7 @@ describe('writeFileTool', () => {
       'nested',
     );
     expect(result).toMatchObject({
-      path: 'docs/notes.txt',
+      path: expect.stringMatching(/docs[\\/]notes\.txt/),
       bytes_written: 6,
       overwritten: false,
     });

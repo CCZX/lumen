@@ -1,6 +1,10 @@
 import { lstat, mkdir, realpath } from 'node:fs/promises';
 import path from 'node:path';
 
+export function getWorkspaceRoot(): string {
+  return process.cwd();
+}
+
 export function isPathInside(parent: string, child: string): boolean {
   const relativePath = path.relative(parent, child);
   return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
