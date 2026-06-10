@@ -9,6 +9,7 @@ const AgentConfigSchema = z.object({
 });
 
 export class ConfigManager {
+  // 从环境变量和 CLI 参数加载配置
   static fromEnvironment(input: CliConfigInput = {}): AgentConfig {
     const result = AgentConfigSchema.safeParse({
       apiKey: input.apiKey ?? process.env.OPENAI_API_KEY,
