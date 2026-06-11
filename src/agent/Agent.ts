@@ -7,6 +7,7 @@ import type {
 import type { AgentConfig } from '../config/types.js';
 import { configStore } from '../store/configStore.js';
 import { getTool, getToolsAsChatCompletionTools } from '../tools/registry/index.js';
+import { assembleSystemPrompt } from '../prompts/index.js';
 
 const MAX_TOOL_ROUNDS = 5;
 
@@ -27,15 +28,14 @@ export class Agent {
       apiKey: config.apiKey,
       baseURL: config.baseURL,
     });
-    this.model = config.model;
+    this.model = config.model; // 提供工具调用支持
   }
 
   async chat(message: string): Promise<string> {
     const messages: ChatCompletionMessageParam[] = [
       {
         role: 'system',
-        content:
-          'You are a helpful coding assistant. Use tools when you need to inspect or update local workspace files before answering.',
+        content: assembleSystemPrompt(),
       },
       {
         role: 'user',
@@ -107,7 +107,7 @@ export class Agent {
 
     try {
       const args = JSON.parse(toolCall.function.arguments || '{}') as unknown;
-      return await tool.execute(args);
+      return await tool.execute(args); // 委托给工具注册表
     } catch (error) {
       return JSON.stringify({
         error: `Invalid arguments for ${toolCall.function.name}: ${(error as Error).message}`,
