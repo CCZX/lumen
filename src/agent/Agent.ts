@@ -6,6 +6,7 @@ import type {
 } from 'openai/resources/chat/completions';
 import type { AgentConfig } from '../config/types.js';
 import { configStore } from '../store/configStore.js';
+import { messageStore } from '../store/messageStore.js';
 import { getTool, getToolsAsChatCompletionTools } from '../tools/registry/index.js';
 import { assembleSystemPrompt } from '../prompts/index.js';
 
@@ -28,27 +29,21 @@ export class Agent {
       apiKey: config.apiKey,
       baseURL: config.baseURL,
     });
-    this.model = config.model; // 提供工具调用支持
+    this.model = config.model;
   }
 
   async chat(message: string): Promise<string> {
-    const messages: ChatCompletionMessageParam[] = [
-      {
-        role: 'system',
-        content: assembleSystemPrompt(),
-      },
-      {
-        role: 'user',
-        content: message,
-      },
-    ];
+    messageStore.getState().addMessage({
+      role: 'user',
+      content: message,
+    });
 
     const tools = getToolsAsChatCompletionTools();
 
     for (let round = 0; round < MAX_TOOL_ROUNDS; round += 1) {
       const response = await this.client.chat.completions.create({
         model: this.model,
-        messages,
+        messages: messageStore.getState().messages,
         tools,
         tool_choice: 'auto',
       });
@@ -62,13 +57,16 @@ export class Agent {
 
       const toolCalls = responseMessage.tool_calls ?? [];
       if (toolCalls.length === 0) {
+        messageStore.getState().addMessage(this.createAssistantMessage(responseMessage));
         return responseMessage.content ?? '';
       }
 
-      messages.push(this.createAssistantToolCallMessage(responseMessage, toolCalls));
+      messageStore.getState().addMessage(
+        this.createAssistantToolCallMessage(responseMessage, toolCalls),
+      );
 
       for (const toolCall of toolCalls) {
-        messages.push({
+        messageStore.getState().addMessage({
           role: 'tool',
           tool_call_id: toolCall.id,
           content: await this.executeToolCall(toolCall),
@@ -87,6 +85,16 @@ export class Agent {
       role: 'assistant',
       content: message.content ?? '',
       tool_calls: toolCalls,
+      ...(message.reasoning_content ? { reasoning_content: message.reasoning_content } : {}),
+    } as ChatCompletionMessageParam;
+  }
+
+  private createAssistantMessage(
+    message: MessageWithReasoningContent,
+  ): ChatCompletionMessageParam {
+    return {
+      role: 'assistant',
+      content: message.content ?? '',
       ...(message.reasoning_content ? { reasoning_content: message.reasoning_content } : {}),
     } as ChatCompletionMessageParam;
   }
