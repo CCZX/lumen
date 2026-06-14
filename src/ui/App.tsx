@@ -42,10 +42,15 @@ export function App(): ReactElement {
 
   return (
     <Box flexDirection="column" padding={1}>
-      <Text bold color="cyan">
-        Lumen Coding Agent
-      </Text>
-      <Text color="gray">model: {config.model}</Text>
+      <Box>
+        <Text bold color="cyan">
+          Lumen Coding Agent
+        </Text>
+        <Text color="gray"> | model: {config.model}</Text>
+        {config.debug && (
+          <Text color="yellow"> | [DEBUG http://localhost:3001]</Text>
+        )}
+      </Box>
 
       <Box marginY={1} flexDirection="column" flexGrow={1}>
         {messages
