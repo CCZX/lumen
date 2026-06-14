@@ -8,4 +8,5 @@ export interface CliConfigInput {
   apiKey?: string;
   baseURL?: string;
   model?: string;
+  debug?: boolean;
 }

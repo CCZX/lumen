@@ -4,9 +4,9 @@ import { DEFAULT_BASE_URL, DEFAULT_MODEL } from '../config/defaults.js';
 import type { AgentConfig } from '../config/types.js';
 
 interface ConfigState {
-  config: AgentConfig;
+  config: AgentConfig & { debug?: boolean };
   setConfig: (config: AgentConfig) => void;
-  patchConfig: (config: Partial<AgentConfig>) => void;
+  patchConfig: (config: Partial<AgentConfig & { debug?: boolean }>) => void;
 }
 
 export const configStore = createStore<ConfigState>()((set) => ({

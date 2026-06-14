@@ -6,11 +6,29 @@ import type {
 } from 'openai/resources/chat/completions';
 import type { AgentConfig } from '../config/types.js';
 import { configStore } from '../store/configStore.js';
+import { debugStore } from '../store/debugStore.js';
 import { messageStore } from '../store/messageStore.js';
 import { getTool, getToolsAsChatCompletionTools } from '../tools/registry/index.js';
 import { assembleSystemPrompt } from '../prompts/index.js';
 
 const MAX_TOOL_ROUNDS = 5;
+
+function sanitizeForDebug(data: unknown): unknown {
+  if (data === null || data === undefined) return data;
+  if (typeof data !== 'object') return data;
+
+  try {
+    return JSON.parse(JSON.stringify(data));
+  } catch {
+    return String(data);
+  }
+}
+
+function logDebug(type: 'request' | 'response' | 'error', data: unknown): void {
+  if (configStore.getState().config.debug) {
+    debugStore.getState().addLog({ type, data: sanitizeForDebug(data) });
+  }
+}
 
 type MessageWithReasoningContent = ChatCompletionMessage & {
   reasoning_content?: string | null;
@@ -39,14 +57,19 @@ export class Agent {
     });
 
     const tools = getToolsAsChatCompletionTools();
+    const messages = messageStore.getState().messages;
+
+    logDebug('request', { model: this.model, messages, tools });
 
     for (let round = 0; round < MAX_TOOL_ROUNDS; round += 1) {
       const response = await this.client.chat.completions.create({
         model: this.model,
-        messages: messageStore.getState().messages,
+        messages,
         tools,
         tool_choice: 'auto',
       });
+
+      logDebug('response', { round, response });
 
       const responseMessage = response.choices[0]?.message as
         | MessageWithReasoningContent
