@@ -5,13 +5,15 @@ import type { ReactElement } from 'react';
 import { useMemo, useState } from 'react';
 import { Agent } from '../agent/Agent.js';
 import { useConfigStore } from '../store/configStore.js';
+import { messageStore } from '../store/messageStore.js';
 
 export function App(): ReactElement {
   const config = useConfigStore((state) => state.config);
   const agent = useMemo(() => new Agent(config), [config]);
   const [input, setInput] = useState('');
-  const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState(() => messageStore.getState().messages);
+  const [pendingInput, setPendingInput] = useState('');
 
   async function handleSubmit(value: string): Promise<void> {
     const trimmedValue = value.trim();
@@ -20,15 +22,21 @@ export function App(): ReactElement {
     }
 
     setIsLoading(true);
+    setPendingInput(trimmedValue);
     setInput('');
 
     try {
-      const result = await agent.chat(trimmedValue);
-      setResponse(result || '(empty response)');
+      await agent.chat(trimmedValue);
+      setMessages([...messageStore.getState().messages]);
     } catch (error) {
-      setResponse(`Error: ${(error as Error).message}`);
+      messageStore.getState().addMessage({
+        role: 'assistant',
+        content: `Error: ${(error as Error).message}`,
+      });
+      setMessages([...messageStore.getState().messages]);
     } finally {
       setIsLoading(false);
+      setPendingInput('');
     }
   }
 
@@ -39,14 +47,26 @@ export function App(): ReactElement {
       </Text>
       <Text color="gray">model: {config.model}</Text>
 
-      <Box marginY={1} flexDirection="column">
-        {isLoading ? (
-          <Box>
+      <Box marginY={1} flexDirection="column" flexGrow={1}>
+        {messages
+          .filter((m) => m.role !== 'system')
+          .map((m, i) => (
+            <Text key={i}>
+              {m.role === 'user' && (
+                <Text color="green">{'> '}</Text>
+              )}
+              {typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}
+              {'\n'}
+            </Text>
+          ))}
+        {isLoading && (
+          <Text>
+            <Text color="green">{'> '}</Text>
+            {pendingInput}
+            {'\n'}
             <Spinner type="dots" />
             <Text> Thinking...</Text>
-          </Box>
-        ) : (
-          response && <Text>{response}</Text>
+          </Text>
         )}
       </Box>
 
